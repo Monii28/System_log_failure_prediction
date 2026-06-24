@@ -1,0 +1,35 @@
+#To show hdfs file stored in hdfs
+/home/hduser/vit/hadoop-3.5.0/bin/hdfs dfs -ls /logs/structur/hdfs_logs
+/home/hduser/vit/hadoop-3.5.0/bin/hdfs dfs -ls /logs/structur/bgl_logs
+/home/hduser/vit/hadoop-3.5.0/bin/hdfs dfs -ls /logs/processed/pig_hdfs_output
+
+#pspark
+hduser@Amrit1:~$ /home/hduser/vit/spark-3.5.0/bin/spark-submit   --master local[*]   
+/home/hduser/Error-Pattern-detection/spark/feature_engineering_prediction.py
+
+#spark
+#inside die Vit   (~/vit/hadoop-3.5.0/bin$ pyspark )
+df_parquet = spark.read.parquet("hdfs://localhost:9000/logs/processed/engineered_features")
+df_parquet.printSchema()
+df_parquet.select("date_hour", "source", "error_type", "error_frequency", "error_distribution", "rate_of_change", "high_error_flag").show(20, truncate=False)   
+
+#mapreducer
+cd Error-Pattern-detection/mapreduce
+export HADOOP_HOME=/home/hduser/vit/hadoop-3.5.0
+export CLASSPATH=$($HADOOP_HOME/bin/hadoop classpath)
+rm -f LogErrorAggregator*.class
+javac -d LogErrorAggregator.java
+jar cf log-aggregator.jar LogErrorAggregator*.class
+$HADOOP_HOME/bin/hadoop jar log-aggregator.jar LogErrorAggregator /logs/structur/hdfs_logs/HDFS_2k.log_structured.csv,/logs/structur/bgl_logs/BGL_2k.log_structured.csv /logs/processed/aggregated_output
+$HADOOP_HOME/bin/hdfs dfs -cat /logs/processed/aggregated_output/part-r-00000 | head -n 20
+
+#groq
+# 1. Set your key in your terminal session memory
+export GROQ_API_KEY="your Groq key"
+/home/hduser/vit/spark-3.5.0/bin/spark-submit \
+  --master local[*] \
+  generate_recommendation.py
+
+
+
+
